@@ -6,5 +6,5 @@ import { Component } from '@angular/core';
   styleUrls: ['./app.component.css']
 })
 export class AppComponent {
-  title = 'deploying-an-angular-cli-project-to-azure-with-vsts';
+  title = 'Hello VSTS and Azure';
 }
