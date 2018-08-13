@@ -1,0 +1,66 @@
+Deploy an AngularCLI project to Azure with Visual Studio Team Services
+
+Build a CI/CD pipeline with Angular, GitHub, Visual Studio Team Services and Azure
+
+
+
+
+In this course we want to build a Continuous Integration and Delivery Pipeline or "CI/CD" for an Angular App created with the Angular CLI which is checked in on GitHub over Visual Studio Team Services and deploy it on Azure.
+
+For this couse I prepared three things:
+
+First, I created a new webapp in Azure which is called "AngularCLIOnAzure" and can be reached via "AngularCLIOnAzure.azurewebsites.net". As you can see the app service is completely new and it is running.
+
+Next in our angular CLI project I introduced a new npm task "build:prod" which triggers a production build. In the "dist" folder which gets created by the angular CLI we can see our output in a specific folder for our project.
+
+Lastly I hosted this project on github as a repository and now we want to create a CI/CD pipeline to execute a build at a change on the master branch. So everytime we check something into master branch or a branch of our choice a new version should be deployed to Azure.
+
+For that lets switch over to our visual studio portal which is reachable under "yourname.visualstudio.com" in my case this is "fabiangosebrink.visualstudio.com".
+
+There we can create a new project and lets call it "AngularCLIOnAzure" and click create. After this is ready we can hit the build tab and create a new build pipeline. 
+
+As a source we can select "github" as our project lies on github. Of course you can select every other source as well. You can use git and lay the code inside your visualstudio.com account as well for instance. However, for this demo we choose" Github" as a source. 
+
+We just keep the name for the sake of simplicity and authroize VSTS against Github with Oauth in this case. Having done that we can select a repository "egghead-deploying-an-angular-cli-project-to-azure-with-vsts"  and we select the master branch for the one to trigger the whole pipeline.
+
+If we hit "Continue" we can select different templates for our build, but lets start with an empty process. As a Name VSTS took "AngularCliOnAzure-CI" for us which we can leave like this and we can add a new task hitting the "plus" button to the Phase "Phase1" in this case.
+
+We can search for "npm" and add an npm task in the first place which is doing an npm install per default. This is exactly what we need right now. The working folder with package.json can be left empty because we are already in the root of our application. If you have to navigate into a specific folder in your project you can do that here.
+
+To add the second task we hit the Plus Button again and again search for npm, adding the same task. But this time we want to execute the build command we introduced, so we will rename the task and choose "custom" in the dropdown, and the "command and arguments" is "run build:prod" in this case.
+
+We can save that... So if we do a build like this we know that a "dist" folder gets created by the angular cli per default. This can be the artifact which we want to provide our release pipeline which we go to in the next minutes. But before we can access that we have to publish this build artifact with another task we can choose after hitting the plus button again. 
+
+This time we are searching for "publish" and if you scroll down a little you can see a task "publish build artifacts". Just add that to the build process and now lets modify it a little. The path to publish, as we are still in the root of our project and a "dist" folder will be created right here during build, we can simply choose the "dist" folder as the path to publish. Lets rename the artifact name to "dist" as well and save again. VSTS automatically renames the display name for us. In the "Control Options" and "Output Variables" you can specify even more things but for this demo this should be it.
+
+Now we can start the build process hitting the "queue" button, leaving everything like it is and hit "Queue" again.
+
+You can see Build "335" has been queued and we can see that it is running. VSTS now waits for an agent which is free and sets up everything for us like we just configured it.
+
+If its ready you can see several summaries of your build and in the "Artifacts"-Tab you can see the build artifacts which have been created. In our case this is the dist folder with the project folder in it.
+
+Okay, as the last thing here we can set up continuous integration by editing the build process, hitting "Triggers" and Enable the checkbox "Enable Continuous Integration". Now everytime the master-branch has a new checkin this build gets triggered.
+
+Now lets create a release of the created artifact hitting the "Release" tab on the left. You see two buttons there.  As I am working with the new online user interface I am hitting the new Release Tab. No matter which one you choose they are very similar to each other so there should not be much confusion.
+
+Here we can select the "Azure App Service Deployment" Template as we want to deploy to an azure app service which we created as a preparation for this course in the beginning.
+
+As an artifact we can add the one we just created from the build hitting "Add an artifact", then "build" and then select our build pipeline "AngularCliOnAzure-CI" in this case. We can rename the alias just as the Source itself and in the info box below we can already see that this pipeline created an artifact called "dist". 
+
+Great, so lets use that one! We are hitting "Add" and of couse beside a continuous build we also want to have a continuous deploy so we can add the continuous deployment trigger for the release, too. Just hit the Flash-Button and Enable the Continuous Deployment Trigger.
+
+Next, we can enter the Phases and Tasks and see the Environment with one task which already got created for us. In the Environment lets fill in our Azure subscription our app service is running on and choose the app service name, which is "AzureCliOnAzure" in this case.
+
+In the task "Deploy Azure App Service" many things are filled out already but we have to pay attention to the textbo "Oackage or folder" which we have to point to the folder of the artifact which got created which is the name of the AngularCLI project in this case. Just hit the button with the three dots and select the proper folder .
+
+Again you can add a lot more to the release like creating a web config etc. and add additional deployment options. But for this demo its okay like that.
+
+If you hit "release" and "Create" a new release gets triggered. As you can see "Release 1" has been created. if we take a look at it an agent is gonna be picked and the release is executed with this agent.
+
+If that succeeded we can go back to our running app service and hit "refresh" and we can see how our angular cli project got released to azure! Great.
+
+Now lets check if the CI/CD works by changing something in the code. In the app.component.ts I will change the title to "Hello VSTS and Azure"...close all files and check this directly into master (Which you should never do normally).
+
+Back in the build tab of visualstudio.com you can see that build 336 has been triggered automatically and if we hit releases a new Release "Release 2 " has been triggered too. After this one was successfull we can go back to our web app on azure, hit refresh again and see the changes we made to our app locally, checkd in on github, build and deployed it over Visual studio team services online in our Web App on Azure.
+
+
